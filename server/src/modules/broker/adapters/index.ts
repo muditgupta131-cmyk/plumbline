@@ -1,0 +1,191 @@
+import { ApiError } from '../../../utils/ApiError.js';
+import { readExchange, readNumber, type BrokerAdapter, type BrokerHolding, type BrokerId } from './types.js';
+
+const TIMEOUT_MS = 15_000;
+
+async function getJson<T>(url: string, headers: Record<string, string>, broker: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, { method: 'GET', headers: { accept: 'application/json', ...headers }, signal: controller.signal });
+    const text = await response.text();
+    const payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+
+    if (response.status === 401 || response.status === 403) {
+      throw ApiError.unauthorized(`${broker} rejected those credentials. Regenerate the key and reconnect.`);
+    }
+    if (!response.ok) {
+      const message =
+        (payload.message as string) ??
+        ((payload.error as Record<string, string> | undefined)?.message ?? `${broker} responded ${response.status}`);
+      throw ApiError.upstream(message);
+    }
+
+    return payload as T;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (error instanceof Error && error.name === 'AbortError') throw ApiError.upstream(`${broker} timed out.`);
+    throw ApiError.upstream(error instanceof Error ? error.message : `${broker} request failed.`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function rows(payload: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(payload)) return payload as Array<Record<string, unknown>>;
+  if (payload && typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+    for (const key of ['data', 'payload', 'holdings', 'result']) {
+      const value = record[key];
+      if (Array.isArray(value)) return value as Array<Record<string, unknown>>;
+      if (value && typeof value === 'object') {
+        const nested = (value as Record<string, unknown>).holdings;
+        if (Array.isArray(nested)) return nested as Array<Record<string, unknown>>;
+      }
+    }
+  }
+  return [];
+}
+
+function pick(row: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+  }
+  return undefined;
+}
+
+function toHolding(row: Record<string, unknown>): BrokerHolding | null {
+  const symbol = String(
+    pick(row, ['trading_symbol', 'tradingsymbol', 'tradingSymbol', 'symbol', 'scrip', 'securityId']) ?? '',
+  )
+    .toUpperCase()
+    .trim();
+
+  const quantity = readNumber(
+    pick(row, ['quantity', 'totalQty', 'total_qty', 'net_quantity', 'demat_free_quantity', 'availableQty']),
+  );
+  const avgBuyPrice = readNumber(
+    pick(row, ['average_price', 'averagePrice', 'avg_price', 'avgCostPrice', 'avg_cost_price', 'buy_price']),
+  );
+
+  if (!symbol || quantity <= 0) return null;
+
+  return {
+    symbol,
+    exchange: readExchange(pick(row, ['exchange', 'exchange_segment', 'exchangeSegment', 'segment'])),
+    quantity,
+    avgBuyPrice,
+    ...(pick(row, ['isin', 'isin_code']) ? { isin: String(pick(row, ['isin', 'isin_code'])) } : {}),
+    ...(pick(row, ['company_name', 'companyName', 'name']) ? { name: String(pick(row, ['company_name', 'companyName', 'name'])) } : {}),
+  };
+}
+
+function mapRows(payload: unknown): BrokerHolding[] {
+  return rows(payload)
+    .map(toHolding)
+    .filter((holding): holding is BrokerHolding => holding !== null);
+}
+
+const groww: BrokerAdapter = {
+  id: 'groww',
+  label: 'Groww',
+  country: 'IN',
+  docsUrl: 'https://groww.in/trade-api/docs',
+  setupSteps: [
+    'Open Groww on the web and go to Profile → Trading APIs.',
+    'Create an API key with access to holdings, then copy the access token.',
+    'Paste the token here. Plumbline only ever calls the read-only holdings endpoint.',
+  ],
+  credentialFields: [
+    { key: 'accessToken', label: 'Access token', help: 'From Groww → Trading APIs', secret: true },
+  ],
+  async fetchHoldings(credentials) {
+    const payload = await getJson<unknown>(
+      'https://api.groww.in/v1/holdings/user',
+      { authorization: `Bearer ${credentials.accessToken}`, 'x-api-version': '1.0' },
+      'Groww',
+    );
+    return mapRows(payload);
+  },
+};
+
+const zerodha: BrokerAdapter = {
+  id: 'zerodha',
+  label: 'Zerodha (Kite Connect)',
+  country: 'IN',
+  docsUrl: 'https://kite.trade/docs/connect/v3/portfolio/',
+  setupSteps: [
+    'Kite Connect is a paid developer subscription on developers.kite.trade.',
+    'Create an app to get the API key, then complete a login to generate an access token.',
+    'Access tokens expire daily, so a re-connect is needed each morning.',
+  ],
+  credentialFields: [
+    { key: 'apiKey', label: 'API key', help: 'From developers.kite.trade', secret: false },
+    { key: 'accessToken', label: 'Access token', help: 'Generated by the daily login flow', secret: true },
+  ],
+  async fetchHoldings(credentials) {
+    const payload = await getJson<unknown>(
+      'https://api.kite.trade/portfolio/holdings',
+      { authorization: `token ${credentials.apiKey}:${credentials.accessToken}`, 'x-kite-version': '3' },
+      'Zerodha',
+    );
+    return mapRows(payload);
+  },
+};
+
+const upstox: BrokerAdapter = {
+  id: 'upstox',
+  label: 'Upstox',
+  country: 'IN',
+  docsUrl: 'https://upstox.com/developer/api-documentation/get-holdings',
+  setupSteps: [
+    'Create an app at account.upstox.com → Apps to get an API key and secret.',
+    'Run the OAuth login once to obtain an access token.',
+    'Paste the access token here — it is valid until the next trading day.',
+  ],
+  credentialFields: [
+    { key: 'accessToken', label: 'Access token', help: 'From the Upstox OAuth flow', secret: true },
+  ],
+  async fetchHoldings(credentials) {
+    const payload = await getJson<unknown>(
+      'https://api.upstox.com/v2/portfolio/long-term-holdings',
+      { authorization: `Bearer ${credentials.accessToken}` },
+      'Upstox',
+    );
+    return mapRows(payload);
+  },
+};
+
+const dhan: BrokerAdapter = {
+  id: 'dhan',
+  label: 'Dhan',
+  country: 'IN',
+  docsUrl: 'https://dhanhq.co/docs/v2/portfolio/',
+  setupSteps: [
+    'Open web.dhan.co → Profile → DhanHQ Trading APIs.',
+    'Generate an access token (valid 30 days) and copy it.',
+    'Paste it here. Plumbline only calls the read-only holdings endpoint.',
+  ],
+  credentialFields: [
+    { key: 'accessToken', label: 'Access token', help: 'From DhanHQ Trading APIs', secret: true },
+  ],
+  async fetchHoldings(credentials) {
+    const payload = await getJson<unknown>(
+      'https://api.dhan.co/v2/holdings',
+      { 'access-token': credentials.accessToken },
+      'Dhan',
+    );
+    return mapRows(payload);
+  },
+};
+
+export const BROKER_ADAPTERS: Record<BrokerId, BrokerAdapter> = { groww, zerodha, upstox, dhan };
+
+export function adapterFor(id: BrokerId): BrokerAdapter {
+  const adapter = BROKER_ADAPTERS[id];
+  if (!adapter) throw ApiError.badRequest('That broker is not supported yet.');
+  return adapter;
+}
+
+export * from './types.js';

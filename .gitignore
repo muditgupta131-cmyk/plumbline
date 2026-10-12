@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.vite
+coverage
+.vercel
+
+# a snapshot of real holdings, taken before an import repair
+mf-import-backup.json
