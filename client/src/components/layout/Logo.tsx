@@ -19,7 +19,7 @@ export function Logo({ className }: { className?: string }) {
         </svg>
       </span>
       <span className="font-display text-lg font-semibold tracking-tight">
-        Invest<span className="text-brand-600 dark:text-brand-400">IQ</span>
+        Plumb<span className="text-brand-600 dark:text-brand-400">line</span>
       </span>
     </Link>
   );
