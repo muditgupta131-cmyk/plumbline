@@ -14,16 +14,16 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#F0FDF4',
-          100: '#DCFCE7',
-          200: '#BBF7D0',
-          300: '#86EFAC',
-          400: '#4ADE80',
-          500: '#22C55E',
-          600: '#16A34A',
-          700: '#15803D',
-          800: '#166534',
-          900: '#14532D',
+          50: '#ECFEFF',
+          100: '#CFFAFE',
+          200: '#A5F3FC',
+          300: '#8AEBFF',
+          400: '#22D3EE',
+          500: '#06B6D4',
+          600: '#0891B2',
+          700: '#0E7490',
+          800: '#155E75',
+          900: '#164E63',
         },
         ink: {
           50: '#F8FAFC',
@@ -39,10 +39,10 @@ export default {
           950: '#060B18',
         },
         accent: {
-          400: '#60A5FA',
-          500: '#3B82F6',
-          600: '#2563EB',
-          700: '#1D4ED8',
+          400: '#47EFD6',
+          500: '#2ADEC5',
+          600: '#0D9488',
+          700: '#0F766E',
         },
         bull: withAlpha('--color-bull'),
         bear: withAlpha('--color-bear'),
@@ -57,8 +57,8 @@ export default {
         },
       },
       fontFamily: {
-        display: ['Sora', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         data: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
@@ -68,13 +68,13 @@ export default {
         eyebrow: ['0.6875rem', { lineHeight: '1', letterSpacing: '0.16em', fontWeight: '600' }],
       },
       borderRadius: {
-        card: '1.25rem',
-        panel: '1.75rem',
+        card: '0.5rem',
+        panel: '1rem',
       },
       boxShadow: {
         card: '0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px -12px rgb(15 23 42 / 0.12)',
         lift: '0 2px 4px rgb(15 23 42 / 0.05), 0 24px 48px -20px rgb(15 23 42 / 0.22)',
-        glow: '0 0 0 1px rgb(22 163 74 / 0.18), 0 18px 40px -18px rgb(22 163 74 / 0.45)',
+        glow: '0 0 0 1px rgb(34 211 238 / 0.2), 0 0 12px rgb(34 211 238 / 0.35)',
       },
       backgroundImage: {
         'grid-fade':

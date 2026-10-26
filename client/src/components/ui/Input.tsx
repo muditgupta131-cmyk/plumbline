@@ -27,7 +27,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
       <div
         className={cn(
-          'flex h-11 items-center gap-2.5 rounded-xl border bg-surface px-3.5 transition-colors duration-200',
+          'inset-well flex h-11 items-center gap-2.5 rounded-lg border bg-canvas px-3.5 transition-colors duration-200',
           'focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20',
           error ? 'border-bear' : 'border-hairline',
         )}

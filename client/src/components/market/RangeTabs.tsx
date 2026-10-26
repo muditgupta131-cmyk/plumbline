@@ -9,7 +9,11 @@ interface RangeTabsProps {
 
 export function RangeTabs({ value, onChange, className }: RangeTabsProps) {
   return (
-    <div role="tablist" aria-label="Chart range" className={cn('flex items-center gap-1', className)}>
+    <div
+      role="tablist"
+      aria-label="Chart range"
+      className={cn('inset-well flex items-center gap-1 rounded-full bg-canvas p-1', className)}
+    >
       {CANDLE_RANGES.map((range) => (
         <button
           key={range}
@@ -20,8 +24,8 @@ export function RangeTabs({ value, onChange, className }: RangeTabsProps) {
           className={cn(
             'rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-200',
             range === value
-              ? 'bg-content/[0.08] text-content'
-              : 'text-content-subtle hover:bg-content/5 hover:text-content',
+              ? 'relief bg-elevated font-semibold text-brand-600 dark:text-brand-400'
+              : 'text-content-subtle hover:text-content',
           )}
         >
           {range}

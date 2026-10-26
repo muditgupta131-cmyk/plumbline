@@ -7,13 +7,14 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 ease-swift disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]';
+  'inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 ease-swift disabled:pointer-events-none disabled:opacity-50 active:translate-y-px';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white shadow-glow hover:bg-brand-700',
-  secondary: 'glass text-content hover:border-brand-500/50 hover:text-brand-600 dark:hover:text-brand-400',
+  // A raised control: specular top rim, occluded base, and the cyan blooms on hover.
+  primary: 'relief bg-brand-600 text-white hover:bg-brand-500 hover:shadow-glow active:shadow-none dark:bg-brand-400 dark:text-ink-900 dark:hover:bg-brand-300',
+  secondary: 'relief border border-hairline bg-elevated text-content hover:text-brand-600 dark:hover:text-brand-400',
   ghost: 'text-content-muted hover:bg-content/5 hover:text-content',
-  danger: 'bg-bear text-white hover:opacity-90',
+  danger: 'relief bg-bear text-white hover:opacity-90',
 };
 
 const sizes: Record<Size, string> = {

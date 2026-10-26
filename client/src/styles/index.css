@@ -4,31 +4,38 @@
 
 @layer base {
   :root {
-    --color-canvas: 246 248 251;
+    --color-canvas: 244 247 250;
     --color-surface: 255 255 255;
     --color-elevated: 255 255 255;
-    --color-hairline: 226 232 240;
-    --color-content: 15 23 42;
-    --color-content-muted: 71 85 105;
-    --color-content-subtle: 148 163 184;
-    --color-bull: 22 163 74;
-    --color-bear: 220 38 38;
+    --color-hairline: 219 227 232;
+    --color-content: 15 19 28;
+    --color-content-muted: 74 90 96;
+    --color-content-subtle: 122 138 144;
+    --color-bull: 14 159 110;
+    --color-bear: 225 29 72;
     --glass-tint: 255 255 255;
     --glass-strength: 0.72;
+    /* Soft-extruded controls: a light rim above, occlusion below. */
+    --relief-rim: 255 255 255;
+    --relief-rim-strength: 0.9;
+    --relief-occlusion-strength: 0.08;
   }
 
   .dark {
-    --color-canvas: 6 11 24;
-    --color-surface: 15 23 42;
-    --color-elevated: 22 32 54;
-    --color-hairline: 30 41 59;
-    --color-content: 226 232 240;
-    --color-content-muted: 148 163 184;
-    --color-content-subtle: 100 116 139;
-    --color-bull: 74 222 128;
-    --color-bear: 248 113 113;
-    --glass-tint: 15 23 42;
+    --color-canvas: 10 14 22;
+    --color-surface: 15 19 28;
+    --color-elevated: 28 32 40;
+    --color-hairline: 49 53 62;
+    --color-content: 223 226 238;
+    --color-content-muted: 187 201 205;
+    --color-content-subtle: 133 147 151;
+    --color-bull: 104 245 184;
+    --color-bear: 255 180 171;
+    --glass-tint: 15 19 28;
     --glass-strength: 0.6;
+    --relief-rim: 255 255 255;
+    --relief-rim-strength: 0.09;
+    --relief-occlusion-strength: 0.45;
   }
 
   * {
@@ -72,10 +79,24 @@
   .surface-gradient {
     background-image: radial-gradient(
         120% 120% at 100% 0%,
-        rgb(37 99 235 / 0.1) 0%,
+        rgb(34 211 238 / 0.1) 0%,
         transparent 55%
       ),
-      radial-gradient(100% 100% at 0% 0%, rgb(22 163 74 / 0.12) 0%, transparent 55%);
+      radial-gradient(100% 100% at 0% 0%, rgb(104 245 184 / 0.1) 0%, transparent 55%);
+  }
+
+  /* Tactile extruded surface: specular top edge, occluded bottom, ambient cast. */
+  .relief {
+    box-shadow:
+      inset 0 1px 0 0 rgb(var(--relief-rim) / var(--relief-rim-strength)),
+      inset 0 -1px 0 0 rgb(0 0 0 / var(--relief-occlusion-strength)),
+      0 8px 24px -4px rgb(0 0 0 / 0.28),
+      0 2px 6px -1px rgb(0 0 0 / 0.16);
+  }
+
+  /* The inverse: a well pressed into the console, for inputs and segmented troughs. */
+  .inset-well {
+    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / var(--relief-occlusion-strength));
   }
 
   .hairline-grid {

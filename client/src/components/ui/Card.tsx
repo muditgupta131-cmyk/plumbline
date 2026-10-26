@@ -11,8 +11,9 @@ export function Card({ as: Tag = 'div', interactive, glass, className, children,
   return (
     <Tag
       className={cn(
-        'rounded-card border border-hairline shadow-card',
-        glass ? 'glass' : 'bg-surface',
+        'rounded-card border border-hairline',
+        // Dense grids opt out with `flat`: relief under a table of figures costs legibility.
+        glass ? 'glass shadow-card' : 'relief bg-elevated',
         interactive && 'transition-all duration-300 ease-swift hover:-translate-y-0.5 hover:shadow-lift',
         className,
       )}
